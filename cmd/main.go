@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -18,15 +17,11 @@ func main() {
 
 	proxy := &httputil.ReverseProxy{
 		Rewrite: func(r *httputil.ProxyRequest) {
-			fmt.Println(r.Out)
-
 			r.SetURL(target)
-			r.Out.Host = r.In.Host
 			r.SetXForwarded()
 		},
 	}
 
 	handler := middleware.RateLimitMiddleware(proxy)
-	fmt.Println("Listening on port :8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
