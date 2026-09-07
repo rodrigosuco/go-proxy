@@ -1,13 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 
+	"github.com/rodrigosuco/go-proxy/cmd/middleware"
 	"github.com/rodrigosuco/go-proxy/cmd/ratelimit"
 )
 
@@ -27,23 +27,7 @@ func main() {
 		},
 	}
 
-	handler := rateLimitMiddleware(proxy, buckets)
+	handler := middleware.RateLimitMiddleware(proxy, buckets)
 	fmt.Println("Listening on port :8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
-}
-
-func rateLimitMiddleware(proxy *httputil.ReverseProxy, buckets []ratelimit.Bucket) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := ratelimit.CheckLimit(r.RemoteAddr, buckets)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusTooManyRequests)
-			json.NewEncoder(w).Encode(map[string]string{
-				"error": "rate limit exceeded",
-			})
-			return
-		}
-
-		proxy.ServeHTTP(w, r)
-	})
 }
