@@ -13,7 +13,6 @@ type Tokens int
 
 type Bucket struct {
 	mu                        sync.Mutex
-	IP                        string
 	Tokens                    int
 	LastTokenRestoreTimeStamp time.Time
 }

@@ -26,13 +26,20 @@ func RateLimitMiddleware(proxy *httputil.ReverseProxy) http.Handler {
 			return
 		}
 
-		bucket, _ := Buckets.LoadOrStore(ip, &ratelimit.Bucket{
-			IP:                        ip,
-			Tokens:                    ratelimit.AvailableTokensForNewBucket,
-			LastTokenRestoreTimeStamp: time.Now(),
-		})
+		var currentBucket *ratelimit.Bucket
 
-		currentBucket := bucket.(*ratelimit.Bucket)
+		if val, ok := Buckets.Load(ip); ok {
+			currentBucket = val.(*ratelimit.Bucket)
+		} else {
+			newBucket := &ratelimit.Bucket{
+				Tokens:                    ratelimit.AvailableTokensForNewBucket,
+				LastTokenRestoreTimeStamp: time.Now(),
+			}
+
+			val, _ := Buckets.LoadOrStore(ip, newBucket)
+			currentBucket = val.(*ratelimit.Bucket)
+
+		}
 
 		if err := ratelimit.CheckLimit(currentBucket); err != nil {
 			w.Header().Set("Content-Type", "application/json")
