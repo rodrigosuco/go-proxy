@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-type IP string
-
-type Tokens int
-
 type Bucket struct {
 	mu                        sync.Mutex
 	Tokens                    int
